@@ -4,5 +4,17 @@ version = "0.1.0"
 authors = ["Carlos Valiente <carlos@pepelabs.net>"]
 edition = "2018"
 
+[[bin]]
+name = "zero2prod"
+path = "src/main.rs"
+
 [dependencies]
+actix-rt = "2"
 actix-web = "4.0.0-beta.4"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros"] }
+reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
+
+[lib]
+path = "src/lib.rs"
