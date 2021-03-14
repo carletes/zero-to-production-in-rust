@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -eux -o pipefail
+
+db_user=${POSTGRES_USER:-postgres}
+db_password=${POSTGRES_PASSWORD:-postgres}
+db_name=${POSTGRES_DB:-newsletter}
+db_port=${POSTGRES_PORT:-5432}
+
+if [ -z "${SKIP_DOCKER:-}" ] ; then
+docker run \
+  --name postgresql \
+  --env POSTGRES_USER=$db_user \
+  --env POSTGRES_PASSWORD=$db_password \
+  --env POSTGRES_DB=$db_name \
+  --publish ${db_port}:5432 \
+  --detach \
+  postgres:13 -N 1000
+fi
+
+export PGPASSWORD=$db_password
+
+until psql -h localhost -U $db_user -p $db_port -d postgres -c '\q' ; do
+  >&2 echo "Waiting for PostgreSQL ..."
+  sleep 1
+done
+
+>&2 echo "PostgreSQL listening on port $db_port"
+
+export DATABASE_URL="postgres://${db_user}:${db_password}@localhost:${db_port}/${db_name}"
+
+>&2 echo "Creating PostgreSQL database ..."
+sqlx database create
+
+>&2 echo "Running database migrations ..."
+sqlx migrate run
+
