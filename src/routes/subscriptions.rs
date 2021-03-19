@@ -11,7 +11,7 @@ pub struct FormData {
 
 pub async fn subscribe(
     form: web::Form<FormData>,
-    pool: web::Data<PgPool>,
+    db_pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, HttpResponse> {
     sqlx::query!(
         r#"
@@ -23,7 +23,7 @@ pub async fn subscribe(
         form.name,
         Utc::now()
     )
-    .execute(pool.get_ref())
+    .execute(db_pool.get_ref())
     .await
     .map_err(|e| {
         eprintln!("Error executing query: {}", e);

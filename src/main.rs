@@ -7,11 +7,11 @@ use zero2prod::startup::run;
 async fn main() -> std::io::Result<()> {
     let config = get_configuration().expect("Cannot read config file");
 
-    let connection_pool = PgPool::connect(&config.database.connection_string())
+    let db_pool = PgPool::connect(&config.database.connection_string())
         .await
         .expect("Cannot connect to PostgreSQL database");
 
     let listener = TcpListener::bind(format!("127.0.0.1:{}", config.application_port))?;
 
-    run(listener, connection_pool)?.await
+    run(listener, db_pool)?.await
 }
