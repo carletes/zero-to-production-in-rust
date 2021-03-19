@@ -1,10 +1,21 @@
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::TcpListener;
 use uuid::Uuid;
-use zero2prod::configuration::{get_configuration, DatabaseSettings};
+use zero2prod::{
+    configuration::{get_configuration, DatabaseSettings},
+    telemetry::{get_subscriber, init_subscriber},
+};
 
 use reqwest;
 use tokio;
+
+lazy_static::lazy_static! {
+    static ref TRACING: () = {
+        let filter = if std::env::var("TEST_LOG").is_ok() { "debug" } else {""};
+        let subscriber = get_subscriber("test".into(), filter.into());
+        init_subscriber(subscriber);
+    };
+}
 
 pub struct TestApp {
     pub base_url: String,
@@ -87,6 +98,8 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
 }
 
 async fn spawn_app() -> TestApp {
+    lazy_static::initialize(&TRACING);
+
     let mut config = get_configuration().expect("Cannot get configuration");
     config.database.database_name = Uuid::new_v4().to_string();
     let db_pool = configure_database(&config.database).await;

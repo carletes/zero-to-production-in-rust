@@ -2,10 +2,10 @@
 let
   pkgs =
     import sources.nixpkgs { overlays = [ (import sources.nixpkgs-mozilla) ]; };
-  # channel = "nightly";
-  # date = "2021-03-18";
-  channel = "stable";
-  date = "2021-02-11";  # Release 1.50.0
+  channel = "nightly";
+  date = "2021-03-18";
+  # channel = "stable";
+  # date = "2021-02-11";  # Release 1.50.0
   targets = [
     # "aarch64-unknown-linux-gnu"
     # "aarch64-unknown-linux-musl"

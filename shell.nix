@@ -11,6 +11,8 @@ pkgs.mkShell {
     # The command-line tools for PostgreSQL.
     pkgs.postgresql
 
+    pkgs.cargo-udeps
+
     # Ideally we would be installing the same version for `sqlx-cli` as the
     # version od `sqlx` we're using in this project.
     pkgs.sqlx-cli
