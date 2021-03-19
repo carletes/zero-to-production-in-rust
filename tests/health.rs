@@ -1,6 +1,7 @@
-use sqlx::{Connection, PgConnection, PgPool};
+use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::TcpListener;
-use zero2prod::configuration::{self, get_configuration};
+use uuid::Uuid;
+use zero2prod::configuration::{get_configuration, DatabaseSettings};
 
 use reqwest;
 use tokio;
@@ -86,21 +87,35 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
 }
 
 async fn spawn_app() -> TestApp {
-    let config = configuration::get_configuration().expect("Cannot get configuration");
-    let connection_pool = PgPool::connect(&config.database.connection_string())
-        .await
-        .expect("Cannot connect to PostgreSQL");
+    let mut config = get_configuration().expect("Cannot get configuration");
+    config.database.database_name = Uuid::new_v4().to_string();
+    let db_pool = configure_database(&config.database).await;
 
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind to random port");
     let port = listener.local_addr().unwrap().port();
     let base_url = format!("http://127.0.0.1:{}", port);
 
-    let server = zero2prod::startup::run(listener, connection_pool.clone())
-        .expect("Failed to bind to address");
+    let server =
+        zero2prod::startup::run(listener, db_pool.clone()).expect("Failed to bind to address");
     let _ = tokio::spawn(server);
 
-    TestApp {
-        base_url,
-        db_pool: connection_pool,
-    }
+    TestApp { base_url, db_pool }
+}
+
+pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
+    let mut conn = PgConnection::connect(&config.connection_string_without_db())
+        .await
+        .expect("Cannot connect to PostgreSQL");
+    conn.execute(&*format!(r#"CREATE DATABASE "{}";"#, config.database_name))
+        .await
+        .expect("Cannot create database");
+    let db_pool = PgPool::connect(&config.connection_string())
+        .await
+        .expect("Cannot connect to PostgreSQL");
+    sqlx::migrate!("./migrations")
+        .run(&db_pool)
+        .await
+        .expect("Cannot run database migrations");
+
+    db_pool
 }
