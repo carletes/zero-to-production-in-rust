@@ -2,21 +2,24 @@
 
 set -eux -o pipefail
 
+postgresql_container=zero-to-production-in-rust-postgresql
 db_user=${POSTGRES_USER:-postgres}
 db_password=${POSTGRES_PASSWORD:-postgres}
 db_name=${POSTGRES_DB:-newsletter}
 db_port=${POSTGRES_PORT:-5432}
 
-if [ -z "${SKIP_DOCKER:-}" ] ; then
+set +e
+docker rm -vf $postgresql_container > /dev/null 2>&1
+set -e
+
 docker run \
-  --name postgresql \
+  --name $postgresql_container \
   --env POSTGRES_USER=$db_user \
   --env POSTGRES_PASSWORD=$db_password \
   --env POSTGRES_DB=$db_name \
   --publish ${db_port}:5432 \
   --detach \
   postgres:13 -N 1000
-fi
 
 export PGPASSWORD=$db_password
 
