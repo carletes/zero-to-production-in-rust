@@ -39,12 +39,6 @@ async fn health_works() {
 
 #[actix_rt::test]
 async fn subscribe_returns_a_200_for_valid_form_data() {
-    let config = get_configuration().expect("Cannot read configuration");
-    let conn_string = config.database.connection_string();
-    let mut conn = PgConnection::connect(&conn_string)
-        .await
-        .expect("Cannot connect to PostgreSQL database");
-
     let app = spawn_app().await;
     let client = reqwest::Client::new();
 
@@ -60,7 +54,7 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
     assert_eq!(200, response.status().as_u16());
 
     let saved = sqlx::query!("SELECT email, name FROM subscriptions")
-        .fetch_one(&mut conn)
+        .fetch_one(&app.db_pool)
         .await
         .expect("Cannot retrieve subscription");
     assert_eq!(saved.email, "ursula_le_guin@gmail.com");
@@ -116,13 +110,13 @@ async fn spawn_app() -> TestApp {
 }
 
 pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
-    let mut conn = PgConnection::connect(&config.connection_string_without_db())
+    let mut conn = PgConnection::connect_with(&config.without_db())
         .await
         .expect("Cannot connect to PostgreSQL");
     conn.execute(&*format!(r#"CREATE DATABASE "{}";"#, config.database_name))
         .await
         .expect("Cannot create database");
-    let db_pool = PgPool::connect(&config.connection_string())
+    let db_pool = PgPool::connect_with(config.with_db())
         .await
         .expect("Cannot connect to PostgreSQL");
     sqlx::migrate!("./migrations")

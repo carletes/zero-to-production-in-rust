@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eux -o pipefail
+
+here=$(cd $(dirname $0) && pwd)
+top_dir=$(cd ${here}/.. && pwd)
+
+env DOCKER_BUILDKIT=1 \
+  docker build \
+    --tag zero2prod \
+    --file ${top_dir}/Dockerfile \
+    ${top_dir}
