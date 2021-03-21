@@ -91,6 +91,36 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
     }
 }
 
+#[actix_rt::test]
+async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+
+    let test_cases = vec![
+        ("name=&email=some.email%40example.com", "empty name"),
+        ("name=foo&email=", "empty email"),
+        ("name=foo&email=definitely-not-an-email", "invalid email"),
+    ];
+
+    for (body, description) in test_cases {
+        let response = client
+            .post(&format!("{}/subscriptions", &app.base_url))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .body(body)
+            .send()
+            .await
+            .expect("Cannot send request");
+
+        assert_eq!(
+            400,
+            response.status().as_u16(),
+            "API did not fail with 400 Bad Request when payload was {}: {}",
+            body,
+            description
+        );
+    }
+}
+
 async fn spawn_app() -> TestApp {
     lazy_static::initialize(&TRACING);
 

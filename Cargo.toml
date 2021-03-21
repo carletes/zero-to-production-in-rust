@@ -21,7 +21,9 @@ tracing-bunyan-formatter = "0.1.7"
 tracing-futures = "0.2.5"
 tracing-log = "0.1.2"
 tracing-subscriber = { version = "0.2.17", features = ["registry", "env-filter"] }
+unicode-segmentation = "1.7.1"
 uuid = { version = "0.8.1", features = ["v4"] }
+validator = "0.12.0"
 
 [dependencies.sqlx]
 version = "0.5.1"
@@ -37,9 +39,13 @@ features = [
 ]
 
 [dev-dependencies]
+claim = "0.5.0"
+fake = "~2.3"
 lazy_static = "1.4.0"
-tokio = { version = "1", features = ["macros"] }
+quickcheck = "~0.9"
+quickcheck_macros = "~0.9"
 reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
+tokio = { version = "1", features = ["macros"] }
 
 [lib]
 path = "src/lib.rs"
