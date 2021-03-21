@@ -2,9 +2,12 @@ use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
 use std::convert::{TryFrom, TryInto};
 
+use crate::domain::SubscriberEmail;
+
 #[derive(serde::Deserialize)]
 pub struct Settings {
     pub database: DatabaseSettings,
+    pub email_client: EmailSettings,
     pub application: ApplicationSettings,
 }
 
@@ -17,6 +20,18 @@ pub struct DatabaseSettings {
     pub port: u16,
     pub require_ssl: bool,
     pub username: String,
+}
+
+#[derive(serde::Deserialize)]
+pub struct EmailSettings {
+    pub base_url: String,
+    pub sender_email: String,
+}
+
+impl EmailSettings {
+    pub fn sender(&self) -> Result<SubscriberEmail, String> {
+        SubscriberEmail::parse(self.sender_email.clone())
+    }
 }
 
 #[derive(serde::Deserialize)]
