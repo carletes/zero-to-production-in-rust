@@ -8,10 +8,12 @@ pkgs.mkShell {
     # The Rust toolchain (see `./nix/rust.nix` for the details).
     rust
 
-    # The command-line tools for PostgreSQL.
-    pkgs.postgresql
+    pkgs.niv
 
     pkgs.cargo-udeps
+
+    # The command-line tools for PostgreSQL.
+    pkgs.postgresql
 
     # Ideally we would be installing the same version for `sqlx-cli` as the
     # version od `sqlx` we're using in this project.
