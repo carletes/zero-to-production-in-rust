@@ -40,7 +40,7 @@ pkgs.mkShell {
       doCheck = false;
       cargoBuildFlags = [ "--package sqlx-cli" ];
 
-      # As of version 0.5.1, `sqlx=cli` selects the features of `sqlx` that
+      # As of version 0.5.1, `sqlx-cli` selects the features of `sqlx` that
       # require OpenSSL at run-time (and `pkg-config` at build-time).
       nativeBuildInputs = [ pkgs.pkg-config ];
       buildInputs = [ pkgs.openssl ];
